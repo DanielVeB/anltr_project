@@ -78,7 +78,7 @@ entryStatement
    ;
 
 functionStatement
-   : (type)? FUNCTION NAME LPAREN (namelist)? RPAREN
+   : (type)? FUNCTION NAME LPAREN (namelist)? RPAREN EOL?
    ;
 
 blockdataStatement
