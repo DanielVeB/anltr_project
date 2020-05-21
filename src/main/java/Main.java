@@ -1,6 +1,8 @@
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 public class Main {
 
@@ -10,6 +12,8 @@ public class Main {
         String file = "src/main/resources/examples/example1.txt";
 
         Translator translator = new Translator();
+
+        TranslatorListener listener = new TranslatorListener();
 
         CharStream stream = null;
 
@@ -25,6 +29,9 @@ public class Main {
         Fortran77Parser parser = new Fortran77Parser(tokenStream);
         Fortran77Parser.ProgramContext context= parser.program();
         translator.visit(context);
+
+        ParseTreeWalker walker = new ParseTreeWalker();
+        walker.walk( listener, context );
 
     }
 }
