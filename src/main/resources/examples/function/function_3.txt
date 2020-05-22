@@ -1,0 +1,5 @@
+FUNCTION NXT ( X )
+	INTEGER X
+	NXT = X + 1
+	RETURN
+	END
