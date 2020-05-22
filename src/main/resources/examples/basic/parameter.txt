@@ -1,0 +1,5 @@
+program circle
+      real pi
+      parameter (pi = 3)
+   stop
+end
