@@ -6,12 +6,14 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 public class Main {
 
+    private static String FUNCTION_PATH = "src/main/resources/examples/function/function_1.txt";
+
 
     public static void main(String[] args) {
 
-        String file = "src/main/resources/examples/example1.txt";
 
-        Translator translator = new Translator();
+
+        String file = FUNCTION_PATH;
 
         TranslatorListener listener = new TranslatorListener();
 
@@ -28,7 +30,6 @@ public class Main {
 
         Fortran77Parser parser = new Fortran77Parser(tokenStream);
         Fortran77Parser.ProgramContext context= parser.program();
-        translator.visit(context);
 
         ParseTreeWalker walker = new ParseTreeWalker();
         walker.walk( listener, context );
