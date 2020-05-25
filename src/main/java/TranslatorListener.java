@@ -121,13 +121,6 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
     }
 
     @Override
-    public void exitSubprogramBody(Fortran77Parser.SubprogramBodyContext ctx) {
-        System.out.println("exitSubprogramBody");
-        System.out.println(ctx.getText());
-
-    }
-
-    @Override
     public void enterWholeStatement(Fortran77Parser.WholeStatementContext ctx) {
         System.out.println("enterWholeStatement");
         System.out.println(ctx.getText());
@@ -220,8 +213,26 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
         System.out.println(ctx.getText());
     }
 
+    @Override public void exitFunctionStatement(Fortran77Parser.FunctionStatementContext ctx) {
+        System.out.println("exitFunctionStatement");
+
+    }
+
+
 
 //    FUNCTION
+
+    @Override public void enterFunctionStatement(Fortran77Parser.FunctionStatementContext ctx) {
+        builder.append("@" + ctx.children.get(1)+ " local_unnamed_addr #0 { \n");
+
+    }
+
+    @Override
+    public void exitSubprogramBody(Fortran77Parser.SubprogramBodyContext ctx) {
+        builder.append("} \n");
+
+    }
+
 
     @Override
     public void enterFunctionSubprogram(Fortran77Parser.FunctionSubprogramContext ctx) {
