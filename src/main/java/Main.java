@@ -1,3 +1,4 @@
+import objects.Program;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -24,15 +25,20 @@ public class Main {
         }catch (Exception e){
             System.out.println("UPS");
         }
-        Fortran77Lexer lexer = new Fortran77Lexer(stream);
 
-        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+        ListenerOrientedParser parser = new ListenerOrientedParser();
+        Program program = parser.parse(stream);
+//        Fortran77Lexer lexer = new Fortran77Lexer(stream);
+//
+//        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+//
+//        Fortran77Parser parser = new Fortran77Parser(tokenStream);
+//        Fortran77Parser.ProgramContext context= parser.program();
+//
+//        ParseTreeWalker walker = new ParseTreeWalker();
+//        walker.walk( listener, context );
 
-        Fortran77Parser parser = new Fortran77Parser(tokenStream);
-        Fortran77Parser.ProgramContext context= parser.program();
-
-        ParseTreeWalker walker = new ParseTreeWalker();
-        walker.walk( listener, context );
+        System.out.println(program.toLLVM());
 
     }
 }

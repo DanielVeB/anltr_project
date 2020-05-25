@@ -1,4 +1,9 @@
+import objects.FunctionStatement;
+import objects.executable_unit.context.FunctionSubprogram;
+
 public class TranslatorListener extends Fortran77ParserBaseListener {
+
+    FunctionSubprogram functionSubprogram;
 
     @Override
     public void enterProgram(Fortran77Parser.ProgramContext ctx) {
@@ -187,6 +192,36 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
     }
 
 
+
+//    FUNCTION
+
+    @Override public void enterFunctionSubprogram(Fortran77Parser.FunctionSubprogramContext ctx) {
+        functionSubprogram = new FunctionSubprogram();
+    }
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The default implementation does nothing.</p>
+     */
+    @Override public void exitFunctionSubprogram(Fortran77Parser.FunctionSubprogramContext ctx) {
+
+    }
+
+
+
+    @Override public void enterFunctionStatement(Fortran77Parser.FunctionStatementContext ctx) { System.out.println(ctx.getText());
+        FunctionStatement statement = new FunctionStatement();
+        functionSubprogram.setFunctionStatement(statement);
+    }
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The default implementation does nothing.</p>
+     */
+    @Override public void exitFunctionStatement(Fortran77Parser.FunctionStatementContext ctx) {
+        System.out.println(ctx.getText());
+
+    }
 
 
 
