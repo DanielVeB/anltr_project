@@ -3,12 +3,10 @@ package objects;
 import objects.executable_unit.context.FunctionSubprogram;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 public class FunctionSubprogramTest {
 
     FunctionStatement functionStatement =
-            new FunctionStatement(F_Type.INTEGER,"function");
+            new FunctionStatement(F_Type.INTEGER, "function");
     SubprogramBody subprogramBody =
             new SubprogramBody();
 
@@ -16,7 +14,7 @@ public class FunctionSubprogramTest {
             new FunctionSubprogram();
 
     @Test
-    public void shouldReturnCorrectFunctionDefinition(){
+    public void shouldReturnCorrectFunctionDefinition() {
         subprogram.setSubprogramBody(subprogramBody);
         subprogram.setFunctionStatement(functionStatement);
 
