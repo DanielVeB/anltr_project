@@ -1,4 +1,14 @@
+import object.FortranType;
+import object.Variable;
+
+import java.util.HashMap;
+import java.util.Map;
+
 public class TranslatorListener extends Fortran77ParserBaseListener {
+
+    //    variables
+    Map<Integer, Variable> variableMap = new HashMap<>();
+    FortranType currentType = null;
 
     private StringBuilder builder = new StringBuilder();
 
@@ -213,19 +223,35 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
         System.out.println(ctx.getText());
     }
 
-    @Override public void exitFunctionStatement(Fortran77Parser.FunctionStatementContext ctx) {
+    @Override
+    public void exitFunctionStatement(Fortran77Parser.FunctionStatementContext ctx) {
         System.out.println("exitFunctionStatement");
 
     }
 
 
-
 //    FUNCTION
 
-    @Override public void enterFunctionStatement(Fortran77Parser.FunctionStatementContext ctx) {
-        builder.append("@" + ctx.children.get(1)+ " local_unnamed_addr #0 { \n");
+    @Override
+    public void enterFunctionStatement(Fortran77Parser.FunctionStatementContext ctx) {
+        builder.append("@" + ctx.children.get(1) + " local_unnamed_addr #0 { \n");
 
     }
+
+    @Override
+    public void enterType(Fortran77Parser.TypeContext ctx) {
+        builder.append(ctx.typename().toString() + " ");
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The default implementation does nothing.</p>
+     */
+    @Override
+    public void exitType(Fortran77Parser.TypeContext ctx) {
+    }
+
 
     @Override
     public void exitSubprogramBody(Fortran77Parser.SubprogramBodyContext ctx) {
@@ -244,5 +270,27 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
         builder.append("\n");
     }
 
+
+//    types
+
+    @Override
+    public void enterTypename(Fortran77Parser.TypenameContext ctx) {
+        switch (ctx.getText().toUpperCase()){
+            case "INTEGER":
+                currentType = FortranType.INTEGER;
+        }
+
+    }
+
+    @Override
+    public void enterTypeStatementName(Fortran77Parser.TypeStatementNameContext ctx) {
+        Variable variable = new Variable(ctx.getText(), currentType);
+        variableMap.put(variableMap.size(), variable);
+        builder.append("%")
+                .append(variableMap.size())
+                .append(" = alloca ")
+                .append(currentType.getLlvmVal())
+                .append(", align 4 \n");
+    }
 
 }

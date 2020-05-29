@@ -1,0 +1,3 @@
+INTEGER F,A,X
+F = A + 1
+END

@@ -1,3 +1,4 @@
-int function(int x){
-    return x + 1;
+void function(){
+    int x = 5;
+    int y = x + 1;
 }
