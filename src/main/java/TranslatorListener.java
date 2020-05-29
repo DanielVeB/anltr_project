@@ -11,9 +11,8 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
 
     private StringBuilder builder = new StringBuilder();
 
-    public String getLLVM() {
-        return builder.toString();
-    }
+    private String currentReturnName = null;
+
 
     enum Type{
         VOID("void"),
@@ -28,6 +27,10 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
         public String getLlvmVal(){
             return llvmVal;
         }
+    }
+
+    public String getLLVM() {
+        return builder.toString();
     }
 
     @Override
@@ -187,10 +190,6 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
     }
 
 
-    @Override
-    public void enterAssignmentStatement(Fortran77Parser.AssignmentStatementContext ctx) {
-        System.out.println(ctx.getText());
-    }
 
     @Override
     public void enterAexpr0(Fortran77Parser.Aexpr0Context ctx) {
@@ -268,6 +267,7 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
         // without type
         if(ctx.children.get(0).getText().equals("FUNCTION")){
             functionName = ctx.children.get(1).getText();
+            currentReturnName = functionName;
             variableList.add(new Variable(functionName));
             builder.append("{{"+functionName+".functionNameType}} ");
 
@@ -275,6 +275,7 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
         // with type
         else{
             functionName = ctx.children.get(2).getText();
+            currentReturnName = functionName;
             Variable functionVariable = new Variable(functionName);
             functionVariable.setType(Type.valueOf(ctx.children.get(0).getText()).getLlvmVal());
             variableList.add(functionVariable);
@@ -314,15 +315,47 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
 
     }
 
+
     @Override public void enterTypeStatement(Fortran77Parser.TypeStatementContext ctx) {
         String type = Type.valueOf(ctx.children.get(0).getText()).getLlvmVal();
 
-        for(int i = 1; i < ctx.children.size(); i = i + 2){
-            builder.append(type);
+        String[] parameters = ctx.children.get(1).getText().split(",");
+        for(int i = 0; i < parameters.length; i++) {
+            boolean alreadyExists = false;
+            for(int j = 0; j < variableList.size(); j++){
+                if(variableList.get(j).getName().equals(parameters[i])){
+                    variableList.get(j).setType(type);
+                    alreadyExists = true;
+                }
+            }
+            if(alreadyExists) continue;
+            Variable tmp = new Variable(parameters[i]);
+            tmp.setType(type);
+            variableList.add(tmp);
         }
 
     }
 
+    @Override public void enterAssignmentStatement(Fortran77Parser.AssignmentStatementContext ctx) {
+        builder.append("{{" +ctx.children.get(0).getText()+".numberType}}");
+        builder.append(" "+ctx.children.get(1)+" ");
+
+        ParseTree equation = ctx.children.get(2);
+
+        while(equation.getChildCount() == 1){
+            equation = equation.getChild(0);
+        }
+        
+
+        builder.append("\n");
+
+    }
+
+
+    @Override public void enterReturnStatement(Fortran77Parser.ReturnStatementContext ctx) {
+        builder.append("ret {{" + currentReturnName +".numberType}}\n");
+
+    }
 
 
     @Override
