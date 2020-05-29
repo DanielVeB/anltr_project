@@ -5,7 +5,7 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import objects.*;
 public class Main {
 
-    private static String FUNCTION_PATH = "src/main/resources/examples/function/function_1.txt";
+    private static String FUNCTION_PATH = "src/main/resources/examples/function/function_2.txt";
 
 
     public static void main(String[] args) {

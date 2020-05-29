@@ -1,9 +1,33 @@
+import org.antlr.v4.runtime.tree.ParseTree;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public class TranslatorListener extends Fortran77ParserBaseListener {
+
+    private List<Variable> variableList = new ArrayList<>();
 
     private StringBuilder builder = new StringBuilder();
 
     public String getLLVM() {
         return builder.toString();
+    }
+
+    enum Type{
+        VOID("void"),
+        INTEGER("i32");
+
+        private String llvmVal;
+
+        Type(String val){
+            this.llvmVal = val;
+        }
+
+        public String getLlvmVal(){
+            return llvmVal;
+        }
     }
 
     @Override
@@ -218,12 +242,69 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
 
     }
 
+    @Override public void exitTypeStatement(Fortran77Parser.TypeStatementContext ctx) {
+        System.out.println("exitTypeStatement");
+        System.out.println(ctx.getText());
 
+    }
+
+    @Override
+    public void enterFunctionSubprogram(Fortran77Parser.FunctionSubprogramContext ctx) {
+
+    }
 
 //    FUNCTION
 
     @Override public void enterFunctionStatement(Fortran77Parser.FunctionStatementContext ctx) {
-        builder.append("@" + ctx.children.get(1)+ " local_unnamed_addr #0 { \n");
+
+        // DEFINE
+
+        builder.append("define dso_local ");
+
+        // FUNCTION NAME
+
+        String functionName = null;
+
+        // without type
+        if(ctx.children.get(0).getText().equals("FUNCTION")){
+            functionName = ctx.children.get(1).getText();
+            variableList.add(new Variable(functionName));
+            builder.append("{{"+functionName+".functionNameType}} ");
+
+        }
+        // with type
+        else{
+            functionName = ctx.children.get(2).getText();
+            Variable functionVariable = new Variable(functionName);
+            functionVariable.setType(Type.valueOf(ctx.children.get(0).getText()).getLlvmVal());
+            variableList.add(functionVariable);
+            builder.append("{{"+functionName+".functionNameType}}");
+        }
+
+        // FUNCTION PARAMETERS
+
+        int paramStartingPoint = 0;
+
+        builder.append("(");
+
+        for(int i = 0; i < ctx.children.size(); i++){
+            if(ctx.children.get(i).getText().equals("(")) paramStartingPoint = i;
+        }
+
+        if(!ctx.children.get(paramStartingPoint+1).equals(")")){
+            String[] parameters = ctx.children.get(paramStartingPoint+1).getText().split(",");
+
+            for(int i = 0; i < parameters.length; i++){
+                Variable tmp = new Variable(parameters[i]);
+                variableList.add(tmp);
+                builder.append("{{"+tmp.getName()+".numberType}}");
+                if(i+1 < parameters.length)
+                    builder.append(", ");
+            }
+
+        }
+
+        builder.append(") local_unnamed_addr #0 { \n");
 
     }
 
@@ -233,11 +314,16 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
 
     }
 
+    @Override public void enterTypeStatement(Fortran77Parser.TypeStatementContext ctx) {
+        String type = Type.valueOf(ctx.children.get(0).getText()).getLlvmVal();
 
-    @Override
-    public void enterFunctionSubprogram(Fortran77Parser.FunctionSubprogramContext ctx) {
-        builder.append("define ");
+        for(int i = 1; i < ctx.children.size(); i = i + 2){
+            builder.append(type);
+        }
+
     }
+
+
 
     @Override
     public void exitFunctionSubprogram(Fortran77Parser.FunctionSubprogramContext ctx) {
