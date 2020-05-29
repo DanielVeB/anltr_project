@@ -30,7 +30,18 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
     }
 
     public String getLLVM() {
-        return builder.toString();
+
+        String string = builder.toString();
+
+        for(Variable v : variableList){
+            string = string.replace("{{"+v.getName()+".functionNameType}}", v.getVariableFunctionNameType());
+            string = string.replace("{{"+v.getName()+".nameType}}", v.getVariableNameType());
+            string = string.replace("{{"+v.getName()+".name}}", v.getVariableName());
+            string = string.replace("{{"+v.getName()+".numberType}}", v.getVariableNumberType());
+            string = string.replace("{{"+v.getName()+".number}}", v.getVariableNumber());
+        }
+
+        return string;
     }
 
     @Override
@@ -337,7 +348,7 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
     }
 
     @Override public void enterAssignmentStatement(Fortran77Parser.AssignmentStatementContext ctx) {
-        builder.append("{{" +ctx.children.get(0).getText()+".numberType}}");
+        builder.append("{{" +ctx.children.get(0).getText()+".number}}");
         builder.append(" "+ctx.children.get(1)+" ");
 
         ParseTree equation = ctx.children.get(2);
@@ -345,7 +356,7 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
         while(equation.getChildCount() == 1){
             equation = equation.getChild(0);
         }
-        
+
 
         builder.append("\n");
 
