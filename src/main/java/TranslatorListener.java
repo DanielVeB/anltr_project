@@ -1,19 +1,31 @@
 import object.FortranType;
 import object.Variable;
+import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class TranslatorListener extends Fortran77ParserBaseListener {
 
-    //    variables
-    Map<Integer, Variable> variableMap = new HashMap<>();
-    FortranType currentType = null;
+    private Map<String, Variable> variableMap = new HashMap<>();
 
     private StringBuilder builder = new StringBuilder();
 
+    private String currentReturnName = null;
+
     public String getLLVM() {
-        return builder.toString();
+
+        String string = builder.toString();
+
+        for (Variable v : variableMap.values()) {
+            string = string.replace("{{" + v.getName() + ".functionNameType}}", v.getVariableFunctionNameType());
+            string = string.replace("{{" + v.getName() + ".nameType}}", v.getVariableNameType());
+            string = string.replace("{{" + v.getName() + ".name}}", v.getVariableName());
+            string = string.replace("{{" + v.getName() + ".numberType}}", v.getVariableNumberType());
+            string = string.replace("{{" + v.getName() + ".number}}", v.getVariableNumber());
+        }
+
+        return string;
     }
 
     @Override
@@ -77,12 +89,6 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
 
     }
 
-    @Override
-    public void exitExpression(Fortran77Parser.ExpressionContext ctx) {
-        System.out.println("exitExpression");
-        System.out.println(ctx.getText());
-
-    }
 
     @Override
     public void enterExecutableStatement(Fortran77Parser.ExecutableStatementContext ctx) {
@@ -174,11 +180,6 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
 
 
     @Override
-    public void enterAssignmentStatement(Fortran77Parser.AssignmentStatementContext ctx) {
-        System.out.println(ctx.getText());
-    }
-
-    @Override
     public void enterAexpr0(Fortran77Parser.Aexpr0Context ctx) {
         System.out.println(ctx.getText());
     }
@@ -229,29 +230,78 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
 
     }
 
+    @Override
+    public void exitTypeStatement(Fortran77Parser.TypeStatementContext ctx) {
+        System.out.println("exitTypeStatement");
+        System.out.println(ctx.getText());
+
+    }
+
+    @Override
+    public void enterFunctionSubprogram(Fortran77Parser.FunctionSubprogramContext ctx) {
+
+    }
 
 //    FUNCTION
 
     @Override
     public void enterFunctionStatement(Fortran77Parser.FunctionStatementContext ctx) {
-        builder.append("@" + ctx.children.get(1) + " local_unnamed_addr #0 { \n");
+
+        // DEFINE
+
+        builder.append("define dso_local ");
+
+        // FUNCTION NAME
+
+        String functionName = null;
+
+        // without type
+        if (ctx.children.get(0).getText().equals("FUNCTION")) {
+            functionName = ctx.children.get(1).getText();
+            currentReturnName = functionName;
+//            variableList.add(new Variable(functionName));
+            variableMap.put(functionName, new Variable(functionName, variableMap.size())); //changed to map
+            builder.append("{{" + functionName + ".functionNameType}} ");
+
+        }
+        // with type
+        else {
+            functionName = ctx.children.get(2).getText();
+            currentReturnName = functionName;
+            Variable functionVariable = new Variable(functionName, variableMap.size());
+            functionVariable.setType(FortranType.getType(ctx.children.get(0).getText()));
+//            variableList.add(functionVariable);
+            variableMap.put(functionName, functionVariable);    //c
+            builder.append("{{" + functionName + ".functionNameType}}");
+        }
+
+        // FUNCTION PARAMETERS
+
+        int paramStartingPoint = 0;
+
+        builder.append("(");
+
+        for (int i = 0; i < ctx.children.size(); i++) {
+            if (ctx.children.get(i).getText().equals("(")) paramStartingPoint = i;
+        }
+
+        if (!ctx.children.get(paramStartingPoint + 1).equals(")")) {
+            String[] parameters = ctx.children.get(paramStartingPoint + 1).getText().split(",");
+
+            for (int i = 0; i < parameters.length; i++) {
+                Variable tmp = new Variable(parameters[i], variableMap.size());
+//                variableList.add(tmp);
+                variableMap.put(tmp.getName(), tmp); //changed to map
+                builder.append("{{" + tmp.getName() + ".numberType}}");
+                if (i + 1 < parameters.length)
+                    builder.append(", ");
+            }
+
+        }
+
+        builder.append(") local_unnamed_addr #0 { \n");
 
     }
-
-    @Override
-    public void enterType(Fortran77Parser.TypeContext ctx) {
-        builder.append(ctx.typename().toString() + " ");
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation does nothing.</p>
-     */
-    @Override
-    public void exitType(Fortran77Parser.TypeContext ctx) {
-    }
-
 
     @Override
     public void exitSubprogramBody(Fortran77Parser.SubprogramBodyContext ctx) {
@@ -261,36 +311,86 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
 
 
     @Override
-    public void enterFunctionSubprogram(Fortran77Parser.FunctionSubprogramContext ctx) {
-        builder.append("define ");
+    public void enterTypeStatement(Fortran77Parser.TypeStatementContext ctx) {
+
+        FortranType t = FortranType.getType(ctx.children.get(0).getText().toUpperCase());
+        String[] parameters = ctx.children.get(1).getText().split(",");
+        for (String parameter : parameters) {
+            Variable variable = variableMap.get(parameter);
+            if (variable == null) {
+                variable = new Variable(parameter);
+                variable.setNumber(variableMap.size());
+                variable.setType(t);
+                variableMap.put(parameter, variable);
+            }
+            else{
+                variable.setType(t);
+            }
+            builder.append("%")
+                    .append(variable.getNumber())
+                    .append(" = alloca ")
+                    .append(variable.getType().getLlvmVal())
+                    .append(", align ")
+                    .append(variable.getType().getBytes())
+                    .append("\n");
+        }
+
     }
+
+    @Override
+    public void enterAssignmentStatement(Fortran77Parser.AssignmentStatementContext ctx) {
+
+        //        assignmentStatement ->
+        //          varRef ASSIGN expression
+
+        //        example
+        //        A - %1 , B = %2
+        //
+        //        B = 2
+        //        A = 2 + B
+        //        store i32 2, i32* %2, allign 4        <- assign 2 to B
+        //
+        //        %3 = load i32, i32* %1, align 4
+        //        %4 = add nsw i32 2, %3
+        //        store i32 %4, i32* %1, align 4
+        //
+
+        Variable v = variableMap.get(ctx.children.get(0).getText());
+        builder.append("store ")
+                .append(v.getType().getLlvmVal())
+                .append(" ")
+                .append(v.getVariableNumber())
+
+                .append(" " + ctx.children.get(1) + " ");
+
+        ParseTree equation = ctx.children.get(2);
+
+        while (equation.getChildCount() == 1) {
+            equation = equation.getChild(0);
+        }
+
+
+        builder.append("\n");
+
+    }
+
+
+    @Override
+    public void enterReturnStatement(Fortran77Parser.ReturnStatementContext ctx) {
+        builder.append("ret {{" + currentReturnName + ".numberType}}\n");
+
+    }
+
 
     @Override
     public void exitFunctionSubprogram(Fortran77Parser.FunctionSubprogramContext ctx) {
         builder.append("\n");
     }
 
-
-//    types
-
     @Override
-    public void enterTypename(Fortran77Parser.TypenameContext ctx) {
-        switch (ctx.getText().toUpperCase()){
-            case "INTEGER":
-                currentType = FortranType.INTEGER;
-        }
+    public void exitExpression(Fortran77Parser.ExpressionContext ctx) {
 
-    }
 
-    @Override
-    public void enterTypeStatementName(Fortran77Parser.TypeStatementNameContext ctx) {
-        Variable variable = new Variable(ctx.getText(), currentType);
-        variableMap.put(variableMap.size(), variable);
-        builder.append("%")
-                .append(variableMap.size())
-                .append(" = alloca ")
-                .append(currentType.getLlvmVal())
-                .append(", align 4 \n");
     }
 
 }
