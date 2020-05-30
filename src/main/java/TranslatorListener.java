@@ -333,7 +333,7 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
                     .append(variable.getNumber())
                     .append(" = alloca ")
                     .append(variable.getType().getLlvmVal())
-                    .append(", allign ")
+                    .append(", align ")
                     .append(variable.getType().getBytes())
                     .append("\n");
         }
@@ -342,8 +342,29 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
 
     @Override
     public void enterAssignmentStatement(Fortran77Parser.AssignmentStatementContext ctx) {
-        builder.append("{{" + ctx.children.get(0).getText() + ".number}}");
-        builder.append(" " + ctx.children.get(1) + " ");
+
+        //        assignmentStatement ->
+        //          varRef ASSIGN expression
+
+        //        example
+        //        A - %1 , B = %2
+        //
+        //        B = 2
+        //        A = 2 + B
+        //        store i32 2, i32* %2, allign 4        <- assign 2 to B
+        //
+        //        %3 = load i32, i32* %1, align 4
+        //        %4 = add nsw i32 2, %3
+        //        store i32 %4, i32* %1, align 4
+        //
+
+        Variable v = variableMap.get(ctx.children.get(0).getText());
+        builder.append("store ")
+                .append(v.getType().getLlvmVal())
+                .append(" ")
+                .append(v.getType().getLlvmVal())
+
+                .append(" " + ctx.children.get(1) + " ");
 
         ParseTree equation = ctx.children.get(2);
 

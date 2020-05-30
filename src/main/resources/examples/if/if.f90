@@ -1,5 +1,5 @@
 program circle
-    INTEGER A,b,X
+    INTEGER A,b,x
     DOUBLE PRECISION D
     A = 5
     b = 5
