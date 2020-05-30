@@ -89,12 +89,6 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
 
     }
 
-    @Override
-    public void exitExpression(Fortran77Parser.ExpressionContext ctx) {
-        System.out.println("exitExpression");
-        System.out.println(ctx.getText());
-
-    }
 
     @Override
     public void enterExecutableStatement(Fortran77Parser.ExecutableStatementContext ctx) {
@@ -329,6 +323,9 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
                 variable.setType(t);
                 variableMap.put(parameter, variable);
             }
+            else{
+                variable.setType(t);
+            }
             builder.append("%")
                     .append(variable.getNumber())
                     .append(" = alloca ")
@@ -362,7 +359,7 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
         builder.append("store ")
                 .append(v.getType().getLlvmVal())
                 .append(" ")
-                .append(v.getType().getLlvmVal())
+                .append(v.getVariableNumber())
 
                 .append(" " + ctx.children.get(1) + " ");
 
@@ -390,5 +387,10 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
         builder.append("\n");
     }
 
+    @Override
+    public void exitExpression(Fortran77Parser.ExpressionContext ctx) {
+
+
+    }
 
 }

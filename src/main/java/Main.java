@@ -7,7 +7,7 @@ public class Main {
 
     private static String FUNCTION_PATH = "src/main/resources/examples/function/function_2.txt";
 
-    private static String IF = "src/main/resources/examples/if/if.f90";
+    private static String IF = "src/main/resources/examples/function/function_2.txt";
 
     public static void main(String[] args) {
 
