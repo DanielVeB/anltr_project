@@ -7,6 +7,12 @@ import java.util.Map;
 
 public class TranslatorListener extends Fortran77ParserBaseListener {
 
+    private static int counter = 0;
+
+    private int setCounter(){
+        return counter++;
+    }
+
     private Map<String, Variable> variableMap = new HashMap<>();
 
     private StringBuilder builder = new StringBuilder();
@@ -260,7 +266,7 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
             functionName = ctx.children.get(1).getText();
             currentReturnName = functionName;
 //            variableList.add(new Variable(functionName));
-            variableMap.put(functionName, new Variable(functionName, variableMap.size())); //changed to map
+            variableMap.put(functionName, new Variable(functionName, setCounter())); //changed to map
             builder.append("{{" + functionName + ".functionNameType}} ");
 
         }
@@ -268,7 +274,7 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
         else {
             functionName = ctx.children.get(2).getText();
             currentReturnName = functionName;
-            Variable functionVariable = new Variable(functionName, variableMap.size());
+            Variable functionVariable = new Variable(functionName, setCounter());
             functionVariable.setType(FortranType.getType(ctx.children.get(0).getText()));
 //            variableList.add(functionVariable);
             variableMap.put(functionName, functionVariable);    //c
@@ -289,7 +295,7 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
             String[] parameters = ctx.children.get(paramStartingPoint + 1).getText().split(",");
 
             for (int i = 0; i < parameters.length; i++) {
-                Variable tmp = new Variable(parameters[i], variableMap.size());
+                Variable tmp = new Variable(parameters[i], setCounter());
 //                variableList.add(tmp);
                 variableMap.put(tmp.getName(), tmp); //changed to map
                 builder.append("{{" + tmp.getName() + ".numberType}}");
@@ -319,7 +325,7 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
             Variable variable = variableMap.get(parameter);
             if (variable == null) {
                 variable = new Variable(parameter);
-                variable.setNumber(variableMap.size());
+                variable.setNumber(setCounter());
                 variable.setType(t);
                 variableMap.put(parameter, variable);
             }
