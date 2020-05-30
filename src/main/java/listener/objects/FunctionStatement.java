@@ -1,4 +1,4 @@
-package objects;
+package listener.objects;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

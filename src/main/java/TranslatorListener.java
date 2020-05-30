@@ -1,44 +1,28 @@
+import object.FortranType;
+import object.Variable;
 import org.antlr.v4.runtime.tree.ParseTree;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TranslatorListener extends Fortran77ParserBaseListener {
 
-    private List<Variable> variableList = new ArrayList<>();
+    private Map<String, Variable> variableMap = new HashMap<>();
 
     private StringBuilder builder = new StringBuilder();
 
     private String currentReturnName = null;
 
-
-    enum Type{
-        VOID("void"),
-        INTEGER("i32");
-
-        private String llvmVal;
-
-        Type(String val){
-            this.llvmVal = val;
-        }
-
-        public String getLlvmVal(){
-            return llvmVal;
-        }
-    }
-
     public String getLLVM() {
 
         String string = builder.toString();
 
-        for(Variable v : variableList){
-            string = string.replace("{{"+v.getName()+".functionNameType}}", v.getVariableFunctionNameType());
-            string = string.replace("{{"+v.getName()+".nameType}}", v.getVariableNameType());
-            string = string.replace("{{"+v.getName()+".name}}", v.getVariableName());
-            string = string.replace("{{"+v.getName()+".numberType}}", v.getVariableNumberType());
-            string = string.replace("{{"+v.getName()+".number}}", v.getVariableNumber());
+        for (Variable v : variableMap.values()) {
+            string = string.replace("{{" + v.getName() + ".functionNameType}}", v.getVariableFunctionNameType());
+            string = string.replace("{{" + v.getName() + ".nameType}}", v.getVariableNameType());
+            string = string.replace("{{" + v.getName() + ".name}}", v.getVariableName());
+            string = string.replace("{{" + v.getName() + ".numberType}}", v.getVariableNumberType());
+            string = string.replace("{{" + v.getName() + ".number}}", v.getVariableNumber());
         }
 
         return string;
@@ -201,7 +185,6 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
     }
 
 
-
     @Override
     public void enterAexpr0(Fortran77Parser.Aexpr0Context ctx) {
         System.out.println(ctx.getText());
@@ -247,12 +230,14 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
         System.out.println(ctx.getText());
     }
 
-    @Override public void exitFunctionStatement(Fortran77Parser.FunctionStatementContext ctx) {
+    @Override
+    public void exitFunctionStatement(Fortran77Parser.FunctionStatementContext ctx) {
         System.out.println("exitFunctionStatement");
 
     }
 
-    @Override public void exitTypeStatement(Fortran77Parser.TypeStatementContext ctx) {
+    @Override
+    public void exitTypeStatement(Fortran77Parser.TypeStatementContext ctx) {
         System.out.println("exitTypeStatement");
         System.out.println(ctx.getText());
 
@@ -265,7 +250,8 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
 
 //    FUNCTION
 
-    @Override public void enterFunctionStatement(Fortran77Parser.FunctionStatementContext ctx) {
+    @Override
+    public void enterFunctionStatement(Fortran77Parser.FunctionStatementContext ctx) {
 
         // DEFINE
 
@@ -276,21 +262,23 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
         String functionName = null;
 
         // without type
-        if(ctx.children.get(0).getText().equals("FUNCTION")){
+        if (ctx.children.get(0).getText().equals("FUNCTION")) {
             functionName = ctx.children.get(1).getText();
             currentReturnName = functionName;
-            variableList.add(new Variable(functionName));
-            builder.append("{{"+functionName+".functionNameType}} ");
+//            variableList.add(new Variable(functionName));
+            variableMap.put(functionName, new Variable(functionName, variableMap.size())); //changed to map
+            builder.append("{{" + functionName + ".functionNameType}} ");
 
         }
         // with type
-        else{
+        else {
             functionName = ctx.children.get(2).getText();
             currentReturnName = functionName;
-            Variable functionVariable = new Variable(functionName);
-            functionVariable.setType(Type.valueOf(ctx.children.get(0).getText()).getLlvmVal());
-            variableList.add(functionVariable);
-            builder.append("{{"+functionName+".functionNameType}}");
+            Variable functionVariable = new Variable(functionName, variableMap.size());
+            functionVariable.setType(FortranType.getType(ctx.children.get(0).getText()));
+//            variableList.add(functionVariable);
+            variableMap.put(functionName, functionVariable);    //c
+            builder.append("{{" + functionName + ".functionNameType}}");
         }
 
         // FUNCTION PARAMETERS
@@ -299,18 +287,19 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
 
         builder.append("(");
 
-        for(int i = 0; i < ctx.children.size(); i++){
-            if(ctx.children.get(i).getText().equals("(")) paramStartingPoint = i;
+        for (int i = 0; i < ctx.children.size(); i++) {
+            if (ctx.children.get(i).getText().equals("(")) paramStartingPoint = i;
         }
 
-        if(!ctx.children.get(paramStartingPoint+1).equals(")")){
-            String[] parameters = ctx.children.get(paramStartingPoint+1).getText().split(",");
+        if (!ctx.children.get(paramStartingPoint + 1).equals(")")) {
+            String[] parameters = ctx.children.get(paramStartingPoint + 1).getText().split(",");
 
-            for(int i = 0; i < parameters.length; i++){
-                Variable tmp = new Variable(parameters[i]);
-                variableList.add(tmp);
-                builder.append("{{"+tmp.getName()+".numberType}}");
-                if(i+1 < parameters.length)
+            for (int i = 0; i < parameters.length; i++) {
+                Variable tmp = new Variable(parameters[i], variableMap.size());
+//                variableList.add(tmp);
+                variableMap.put(tmp.getName(), tmp); //changed to map
+                builder.append("{{" + tmp.getName() + ".numberType}}");
+                if (i + 1 < parameters.length)
                     builder.append(", ");
             }
 
@@ -327,33 +316,38 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
     }
 
 
-    @Override public void enterTypeStatement(Fortran77Parser.TypeStatementContext ctx) {
-        String type = Type.valueOf(ctx.children.get(0).getText()).getLlvmVal();
+    @Override
+    public void enterTypeStatement(Fortran77Parser.TypeStatementContext ctx) {
 
+        FortranType t = FortranType.getType(ctx.children.get(0).getText().toUpperCase());
         String[] parameters = ctx.children.get(1).getText().split(",");
-        for(int i = 0; i < parameters.length; i++) {
-            boolean alreadyExists = false;
-            for(int j = 0; j < variableList.size(); j++){
-                if(variableList.get(j).getName().equals(parameters[i])){
-                    variableList.get(j).setType(type);
-                    alreadyExists = true;
-                }
+        for (String parameter : parameters) {
+            Variable variable = variableMap.get(parameter);
+            if (variable == null) {
+                variable = new Variable(parameter);
+                variable.setNumber(variableMap.size());
+                variable.setType(t);
+                variableMap.put(parameter, variable);
             }
-            if(alreadyExists) continue;
-            Variable tmp = new Variable(parameters[i]);
-            tmp.setType(type);
-            variableList.add(tmp);
+            builder.append("%")
+                    .append(variable.getNumber())
+                    .append(" = alloca ")
+                    .append(variable.getType().getLlvmVal())
+                    .append(", allign ")
+                    .append(variable.getType().getBytes())
+                    .append("\n");
         }
 
     }
 
-    @Override public void enterAssignmentStatement(Fortran77Parser.AssignmentStatementContext ctx) {
-        builder.append("{{" +ctx.children.get(0).getText()+".number}}");
-        builder.append(" "+ctx.children.get(1)+" ");
+    @Override
+    public void enterAssignmentStatement(Fortran77Parser.AssignmentStatementContext ctx) {
+        builder.append("{{" + ctx.children.get(0).getText() + ".number}}");
+        builder.append(" " + ctx.children.get(1) + " ");
 
         ParseTree equation = ctx.children.get(2);
 
-        while(equation.getChildCount() == 1){
+        while (equation.getChildCount() == 1) {
             equation = equation.getChild(0);
         }
 
@@ -363,8 +357,9 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
     }
 
 
-    @Override public void enterReturnStatement(Fortran77Parser.ReturnStatementContext ctx) {
-        builder.append("ret {{" + currentReturnName +".numberType}}\n");
+    @Override
+    public void enterReturnStatement(Fortran77Parser.ReturnStatementContext ctx) {
+        builder.append("ret {{" + currentReturnName + ".numberType}}\n");
 
     }
 
