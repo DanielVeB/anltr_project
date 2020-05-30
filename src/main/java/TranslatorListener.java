@@ -399,4 +399,57 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
 
     }
 
+
+
+
+//    IF STATEMENT
+
+    @Override public void enterIfStatement(Fortran77Parser.IfStatementContext ctx) {
+        System.out.println(ctx.getText());
+    }
+
+    @Override public void exitIfStatement(Fortran77Parser.IfStatementContext ctx) {
+        System.out.println(ctx.getText());
+    }
+
+    @Override public void enterBlockIfStatement(Fortran77Parser.BlockIfStatementContext ctx) {
+        System.out.println(ctx.getText());
+    }
+
+    @Override public void exitBlockIfStatement(Fortran77Parser.BlockIfStatementContext ctx) {
+        System.out.println(ctx.getText());
+    }
+
+    @Override public void enterFirstIfBlock(Fortran77Parser.FirstIfBlockContext ctx) {
+        System.out.println(ctx.getText());
+    }
+
+    @Override public void exitFirstIfBlock(Fortran77Parser.FirstIfBlockContext ctx) {
+        System.out.println(ctx.getText());
+    }
+
+    @Override public void enterElseIfStatement(Fortran77Parser.ElseIfStatementContext ctx) {
+        System.out.println(ctx.getText());
+    }
+
+    @Override public void exitElseIfStatement(Fortran77Parser.ElseIfStatementContext ctx) {
+        System.out.println(ctx.getText());
+    }
+
+    @Override public void enterElseStatement(Fortran77Parser.ElseStatementContext ctx) {
+        System.out.println(ctx.getText());
+    }
+
+    @Override public void exitElseStatement(Fortran77Parser.ElseStatementContext ctx) {
+        System.out.println(ctx.getText());
+    }
+
+    @Override public void enterEndIfStatement(Fortran77Parser.EndIfStatementContext ctx) {
+        System.out.println(ctx.getText());
+    }
+
+    @Override public void exitEndIfStatement(Fortran77Parser.EndIfStatementContext ctx) {
+        System.out.println(ctx.getText());
+    }
+
 }
