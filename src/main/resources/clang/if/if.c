@@ -1,12 +1,10 @@
 void f() {
-   int a,b,x;
-   double d;
-   a = 5;
-   b = 5 + a;
-   x = 0;
-   if ( a== b){
-    x = a;
+   int a,b;
+   a = 4;
+   b = 3;
+   if(a ==b){
+    a = 1;
    }else{
-        x = b;
+    b = 2;
    }
 }

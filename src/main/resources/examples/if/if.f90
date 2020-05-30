@@ -1,12 +1,10 @@
 program circle
-    INTEGER A,b,x
-    DOUBLE PRECISION D
-    A = 5
-    b = 5
-    x = 0
+    INTEGER A,B
+    A = 4
+    B = 3
     if ( a .eqv. b) THEN
-        x = A
+        A = 1
     else
-        x = b
+        B = 2
     end if
 end

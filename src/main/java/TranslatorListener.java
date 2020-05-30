@@ -362,9 +362,12 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
         builder.append("store ")
                 .append(v.getType().getLlvmVal())
                 .append(" ")
-                .append(v.getType().getLlvmVal())
-
-                .append(" " + ctx.children.get(1) + " ");
+                .append(ctx.children.get(2).getText()) // TODO need to be changed
+                .append(", ")
+                .append(v.getType().getLlvmVal()+"* ")
+                .append("%"+v.getNumber())
+                .append(", align ")
+                .append(v.getType().getBytes());
 
         ParseTree equation = ctx.children.get(2);
 
