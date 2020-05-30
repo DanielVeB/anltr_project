@@ -378,7 +378,7 @@ blockIfStatement
    ;
 
 firstIfBlock
-   : THEN wholeStatement +
+   : THEN (EOL)? wholeStatement +
    ;
 
 elseIfStatement
@@ -386,7 +386,7 @@ elseIfStatement
    ;
 
 elseStatement
-   : ELSE wholeStatement +
+   : ELSE (EOL)? wholeStatement +
    ;
 
 endIfStatement
