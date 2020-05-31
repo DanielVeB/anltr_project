@@ -2,7 +2,9 @@ import object.FortranType;
 import object.Variable;
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class TranslatorListener extends Fortran77ParserBaseListener {
@@ -209,11 +211,6 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
     }
 
     @Override
-    public void enterAexpr2(Fortran77Parser.Aexpr2Context ctx) {
-        System.out.println(ctx.getText());
-    }
-
-    @Override
     public void exitAexpr2(Fortran77Parser.Aexpr2Context ctx) {
         System.out.println("exitAexpr2");
         System.out.println(ctx.getText());
@@ -346,38 +343,36 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
     @Override
     public void enterAssignmentStatement(Fortran77Parser.AssignmentStatementContext ctx) {
 
-        //        assignmentStatement ->
-        //          varRef ASSIGN expression
-
-        //        example
-        //        A - %1 , B = %2
-        //
-        //        B = 2
-        //        A = 2 + B
-        //        store i32 2, i32* %2, allign 4        <- assign 2 to B
-        //
-        //        %3 = load i32, i32* %1, align 4
-        //        %4 = add nsw i32 2, %3
-        //        store i32 %4, i32* %1, align 4
-        //
-
-        Variable v = variableMap.get(ctx.children.get(0).getText());
-        builder.append("store ")
-                .append(v.getType().getLlvmVal())
-                .append(" ")
-                .append(v.getVariableNumber())
-
-                .append(" " + ctx.children.get(1) + " ");
-
-        ParseTree equation = ctx.children.get(2);
-
-        while (equation.getChildCount() == 1) {
-            equation = equation.getChild(0);
-        }
+        // TO DO    BUDOWANIE TAKIEJ LISTY Z LISCI
 
 
-        builder.append("\n");
-
+        List<String> listka = new ArrayList<>();
+        listka.add("F");
+        listka.add("=");
+        listka.add("X");
+        listka.add("+");
+        listka.add("2");
+        listka.add("+");
+        listka.add("3");
+        listka.add("*");
+        listka.add("62");
+        listka.add("+");
+        listka.add("(");
+        listka.add("2");
+        listka.add("+");
+        listka.add("3");
+        listka.add("+");
+        listka.add("(");
+        listka.add("2");
+        listka.add("+");
+        listka.add("3");
+        listka.add("/");
+        listka.add("4");
+        listka.add(")");
+        listka.add(")");
+        listka.add("*");
+        listka.add("62");
+        makeEquation(listka, variableMap.get(listka.get(0)).getLLVMType());
     }
 
 
@@ -393,10 +388,127 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
         builder.append("\n");
     }
 
-    @Override
-    public void exitExpression(Fortran77Parser.ExpressionContext ctx) {
 
 
+    private void makeEquation(List<String> list, String type){
+        List <String> equation = new ArrayList<>(list);
+        while(equation.contains("(")){
+            int parenthesisStartPlace = 0;
+            int parenthesisEndPlace = 0;
+            int parenthesisCounter = 0;
+            for(int i = 0; i<equation.size(); i++){
+                if(equation.get(i).equals("(")){
+                    if(parenthesisCounter==0) parenthesisStartPlace = i;
+                    parenthesisCounter++;
+                }
+                if(equation.get(i).equals(")")){
+                    parenthesisCounter--;
+                    if(parenthesisCounter==0){
+                        parenthesisEndPlace = i;
+                        break;
+                    }
+
+                }
+            }
+
+            counter++;
+            List<String> tmpEquation = new ArrayList<>(equation.subList(parenthesisStartPlace+1,parenthesisEndPlace));
+            tmpEquation.add(0, "=");
+            tmpEquation.add(0, "%"+counter);
+
+            makeEquation(tmpEquation, type);
+
+
+            for(int i = parenthesisEndPlace; i >= parenthesisStartPlace; i--){
+                equation.remove(i);
+            }
+            equation.add(parenthesisStartPlace, "%"+counter);
+
+        }
+
+
+        makeEquationRemoveMulDiv(equation, type);
+        makeEquationRemoveAddSub(equation, type);
+        makeEquationFinish(equation, type);
+    }
+
+    private void makeEquationFinish(List<String> list, String type){
+        List <String> equation = new ArrayList<>(list);
+
+        if(equation.get(0).startsWith("%")){
+            return;
+        }
+        else builder.append("{{"+equation.get(0)+".number}} = ");
+        if(type.equals("i32"))builder.append("add ");     //jesli int
+        else builder.append("fadd ");                                                                 //jesli nie int (float) ?
+        builder.append(type+" 0, ");
+        if(variableMap.containsKey(equation.get(2)))builder.append("{{"+equation.get(2)+".number}}\n"); //jesli zmienna
+        else builder.append(equation.get(2)+"\n");                                                      //jesli stala
+    }
+
+
+    private void makeEquationSign(List<String> list, int sign, String intSign, String floatSign, String type){
+        List <String> equation = new ArrayList<>(list);
+
+        counter++;
+        builder.append("%"+counter+" = ");
+        if(type.equals("i32"))builder.append(intSign+" ");     //jesli int
+        else builder.append(floatSign+" ");                                                                 //jesli nie int (float) ?
+
+        builder.append(type+" ");
+
+        if(equation.get(sign-1).startsWith("%")) builder.append(equation.get(sign-1)+", ");           //jesli zmienna spoza listy
+        else if(variableMap.containsKey(equation.get(sign-1)))builder.append("{{"+equation.get(sign-1)+".number}}, "); //jesli zmienna
+        else builder.append(equation.get(sign-1)+", ");
+
+        if(equation.get(sign+1).startsWith("%")) builder.append(equation.get(sign+1)+"\n");           //jesli zmienna spoza listy
+        else if(variableMap.containsKey(equation.get(sign+1)))builder.append("{{"+equation.get(sign+1)+".number}}\n"); //jesli zmienna
+        else builder.append(equation.get(sign+1)+"\n");
+    }
+
+    private void makeEquationRemoveMulDiv(List<String> equation, String type){
+        while(equation.contains("*") || equation.contains(("/"))){
+            int sign = 0;
+            for(int i = 2; i < equation.size(); i++){
+                if(equation.get(i).equals("*") || equation.get(i).equals("/")){
+                    sign = i;
+                    break;
+                }
+            }
+            if(equation.get(sign).equals("*")){
+                makeEquationSign(equation, sign, "mul", "fmul", type);
+            }
+            if(equation.get(sign).equals("/")){
+                makeEquationSign(equation, sign, "div", "fdiv", type);
+            }
+            equation.remove(sign+1);
+            equation.remove(sign);
+            equation.remove(sign-1);
+            equation.add(sign-1,"%"+counter);
+        }
+    }
+
+    private void makeEquationRemoveAddSub(List<String> equation, String type){
+        while(equation.contains("+") || equation.contains(("-"))){
+            int sign = 0;
+            for(int i = 2; i < equation.size(); i++){
+                if(equation.get(i).equals("-") || equation.get(i).equals("+")){
+                    sign = i;
+                    break;
+                }
+            }
+            if(equation.get(sign).equals("+")){
+                makeEquationSign(equation, sign, "add", "fadd", type);
+            }
+            if(equation.get(sign).equals("-")){
+                makeEquationSign(equation, sign, "sub", "fsub", type);
+            }
+            equation.remove(sign+1);
+            equation.remove(sign);
+            equation.remove(sign-1);
+            equation.add(sign-1,"%"+counter);
+        }
     }
 
 }
+

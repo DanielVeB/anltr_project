@@ -36,6 +36,8 @@ public class Variable {
         this.number = num;
     }
 
+    public String getLLVMType() { return type.getLlvmVal();}
+
     public String getVariableName() {
         return "%" + name;
     }
