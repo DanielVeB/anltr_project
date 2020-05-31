@@ -12,9 +12,7 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
     private static int ifHoleCounter = 0;
     private final String IF_HOLE = "IF_HOLE";
 
-    private static int elseHoleCounter = 0;
     private final String ELSE_HOLE = "ELSE_HOLE";
-
     private boolean enableLabel = false;
 
     private void enableLabel() {
@@ -26,7 +24,6 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
     }
 
     private boolean logicalExpressionEnabled = false;
-
 
     private int setCounter() {
         return counter++;
