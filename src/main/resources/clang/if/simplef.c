@@ -1,11 +1,10 @@
 void f() {
     int a = 1;
-   if(a >= 2){
-        a = a + 1;
-   }
-
-   if(a == 4){
-        a = 5;
+    int b =2 ;
+   if( a == b){
+        a = 1;
+   }else{
+   b= 1;
    }
    return;
 }

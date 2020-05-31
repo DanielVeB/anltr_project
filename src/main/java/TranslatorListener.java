@@ -9,7 +9,23 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
 
     private static int counter = 0;
 
-    private int setCounter(){
+    private static int ifHoleCounter = 0;
+    private final String IF_HOLE = "IF_HOLE";
+
+    private final String ELSE_HOLE = "ELSE_HOLE";
+    private boolean enableLabel = false;
+
+    private void enableLabel() {
+        enableLabel = true;
+    }
+
+    private void disableLabel() {
+        enableLabel = false;
+    }
+
+    private boolean logicalExpressionEnabled = false;
+
+    private int setCounter() {
         return counter++;
     }
 
@@ -138,20 +154,6 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
     @Override
     public void enterSubprogramBody(Fortran77Parser.SubprogramBodyContext ctx) {
         System.out.println("enterSubprogramBody");
-        System.out.println(ctx.getText());
-
-    }
-
-    @Override
-    public void enterWholeStatement(Fortran77Parser.WholeStatementContext ctx) {
-        System.out.println("enterWholeStatement");
-        System.out.println(ctx.getText());
-
-    }
-
-    @Override
-    public void exitWholeStatement(Fortran77Parser.WholeStatementContext ctx) {
-        System.out.println("exitWholeStatement");
         System.out.println(ctx.getText());
 
     }
@@ -328,8 +330,7 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
                 variable.setNumber(setCounter());
                 variable.setType(t);
                 variableMap.put(parameter, variable);
-            }
-            else{
+            } else {
                 variable.setType(t);
             }
             builder.append("%")
@@ -397,6 +398,205 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
     public void exitExpression(Fortran77Parser.ExpressionContext ctx) {
 
 
+    }
+
+
+    //  LOGICAL EXPRESSION
+    @Override
+    public void enterLogicalExpression(Fortran77Parser.LogicalExpressionContext ctx) {
+//        builder.append("enterLogicalExp").append("\n");
+        logicalExpressionEnabled = true;
+    }
+
+    @Override
+    public void exitLogicalExpression(Fortran77Parser.LogicalExpressionContext ctx) {
+//        builder.append("exitLogicalExp").append("\n");
+
+        builder.append("br i1 ")
+                .append("%" + setCounter())
+                .append(", label ")
+                .append("%" + (counter))
+                .append(", label ")
+                .append("%" + IF_HOLE + (++ifHoleCounter))
+                .append("\n\n");
+    }
+
+//    IF STATEMENT
+
+    @Override
+    public void enterIfStatement(Fortran77Parser.IfStatementContext ctx) {
+        enableLabel();
+    }
+
+    @Override
+    public void exitIfStatement(Fortran77Parser.IfStatementContext ctx) {
+        System.out.println(ctx.getText());
+    }
+
+    @Override
+    public void enterBlockIfStatement(Fortran77Parser.BlockIfStatementContext ctx) {
+
+    }
+
+    @Override
+    public void exitBlockIfStatement(Fortran77Parser.BlockIfStatementContext ctx) {
+
+        System.out.println(ctx.getText());
+    }
+
+    @Override
+    public void enterFirstIfBlock(Fortran77Parser.FirstIfBlockContext ctx) {
+        enableLabel();
+    }
+
+    @Override
+    public void exitFirstIfBlock(Fortran77Parser.FirstIfBlockContext ctx) {
+    }
+
+    @Override
+    public void enterElseIfStatement(Fortran77Parser.ElseIfStatementContext ctx) {
+        String text = builder.toString();
+        text = text.replaceAll(IF_HOLE + (ifHoleCounter), String.valueOf(counter));
+
+        builder = new StringBuilder(text);
+
+        builder.append("; <label>: ")
+                .append(setCounter())
+                .append(":\n");
+    }
+
+    @Override
+    public void exitElseIfStatement(Fortran77Parser.ElseIfStatementContext ctx) {
+
+        System.out.println(ctx.getText());
+    }
+
+    @Override
+    public void enterElseStatement(Fortran77Parser.ElseStatementContext ctx) {
+        disableLabel();
+        String text = builder.toString();
+        text = text.replaceAll(IF_HOLE + (ifHoleCounter), String.valueOf(counter));
+
+        builder = new StringBuilder(text);
+
+        builder.append("; <label>: ")
+                .append(setCounter())
+                .append(":\n");
+    }
+
+    @Override
+    public void exitElseStatement(Fortran77Parser.ElseStatementContext ctx) {
+        builder.append("br label %")
+                .append(ELSE_HOLE)
+                .append("\n\n");
+    }
+
+    @Override
+    public void enterEndIfStatement(Fortran77Parser.EndIfStatementContext ctx) {
+        String text = builder.toString();
+        text = text.replaceAll(ELSE_HOLE, String.valueOf(counter));
+
+        builder = new StringBuilder(text);
+
+        builder.append("; <label>:")
+                .append(setCounter())
+                .append(":\n");
+    }
+
+    @Override
+    public void exitEndIfStatement(Fortran77Parser.EndIfStatementContext ctx) {
+        System.out.println(ctx.getText());
+    }
+
+    @Override
+    public void enterWholeStatement(Fortran77Parser.WholeStatementContext ctx) {
+        if (enableLabel) {
+            builder.append("; <label>:")
+                    .append(setCounter())
+                    .append(":\n");
+        }
+
+    }
+
+    @Override
+    public void exitWholeStatement(Fortran77Parser.WholeStatementContext ctx) {
+
+        if (enableLabel) {
+            builder.append("br label %")
+                    .append(ELSE_HOLE)
+                    .append("\n\n");
+        }
+
+    }
+
+    @Override
+    public void enterLexpr4(Fortran77Parser.Lexpr4Context ctx) {
+//        builder.append("enterLexpr4").append("\n");
+//        String obj1 = ctx.children.get(0).getText();
+//        TerminalNode node = (TerminalNode) ctx.children.get(1);
+//        String obj2 = ctx.children.get(2).getText();
+        if (logicalExpressionEnabled) {
+
+            String firstVarRef = "";
+            String secondVarRef = "";
+
+            String varName = ctx.children.get(0).getText();
+            if (variableMap.containsKey(varName)) {
+                getVariable(varName);
+                firstVarRef = "%" + (counter - 1);
+            } else {
+                firstVarRef = varName;
+            }
+
+            String var2Name = ctx.children.get(2).getText();
+            if (variableMap.containsKey(var2Name)) {
+                getVariable(var2Name);
+                secondVarRef = "%" + (counter - 1);
+            } else {
+                secondVarRef = var2Name;
+            }
+
+            builder.append("%" + counter)
+                    .append(" = icmp ");
+//                    .append("sgt" )
+            switch (ctx.children.get(1).getText().toLowerCase()) {
+                case ".le.":
+                    builder.append(" slt");
+                    break;
+                case ".ge.":
+                    builder.append(" sgt");
+                    break;
+                case ".eq.":
+                    builder.append(" eq");
+                    break;
+                case ".neq.":
+                    builder.append(" neq");
+                    break;
+            }
+
+            builder.append(" i32 ") //need to be changed
+                    .append(firstVarRef + ", ")
+                    .append(secondVarRef)
+                    .append("\n");
+
+
+            logicalExpressionEnabled = false;
+        }
+    }
+
+    private String getVariable(String varName) {
+        Variable variable = variableMap.get(varName);
+        builder.append("%" + setCounter())
+                .append(" = load ")
+                .append(variable.getType().getLlvmVal())
+                .append(", " + variable.getType().getLlvmVal() + "* ")
+                .append("%")
+                .append(variable.getNumber())
+                .append(", align ")
+                .append(variable.getType().getBytes())
+                .append("\n");
+
+        return "%" + variable.getNumber();
     }
 
 }
