@@ -4,7 +4,10 @@ program circle
     B = 3
     if ( a .le. b) THEN
         A = 1
-    elseif (a .ge. b) THEN
+        if( B .eqv. 4) THEN
+            B = 3
+        end if
+    else
         B = 2
     end if
 end
