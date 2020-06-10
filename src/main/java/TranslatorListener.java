@@ -470,5 +470,11 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
         return equation;
     }
 
+    @Override
+    public void enterCommentStatement(Fortran77Parser.CommentStatementContext ctx) {
+        builder.append(";"+ctx.getChild(0).getText().substring(1)+"\n");
+    }
+
+
 }
 

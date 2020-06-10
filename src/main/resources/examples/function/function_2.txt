@@ -1,5 +1,5 @@
 INTEGER FUNCTION F ( X, Z)
 	INTEGER X, Z
-	F = X + 5 / -4 * ( 4 + 3) + ( 2 + 1 )  / 3
+	F = X + Z
 	RETURN
 	END
