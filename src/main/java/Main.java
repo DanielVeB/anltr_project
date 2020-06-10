@@ -7,14 +7,12 @@ public class Main {
 
     private static String FUNCTION_PATH = "src/main/resources/examples/function/function_2.txt";
 
-    private static String IF = "src/main/resources/examples/if/elseif.f90";
-
-    private static String ASSIGN = "src/main/resources/examples/basic/assign";
+    private static String IF = "src/main/resources/examples/if/if.f90";
 
     public static void main(String[] args) {
 
 
-        String file = IF;
+        String file = FUNCTION_PATH;
 
         TranslatorListener listener = new TranslatorListener();
 

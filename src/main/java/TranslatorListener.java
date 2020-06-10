@@ -1,31 +1,22 @@
 import object.FortranType;
 import object.Variable;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.TokenStream;
+import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class TranslatorListener extends Fortran77ParserBaseListener {
 
     private static int counter = 0;
 
-    private static int ifHoleCounter = 0;
-    private final String IF_HOLE = "IF_HOLE";
-
-    private final String ELSE_HOLE = "ELSE_HOLE";
-    private boolean enableLabel = false;
-
-    private void enableLabel() {
-        enableLabel = true;
-    }
-
-    private void disableLabel() {
-        enableLabel = false;
-    }
-
-    private boolean logicalExpressionEnabled = false;
-
-    private int setCounter() {
+    private int setCounter(){
         return counter++;
     }
 
@@ -52,77 +43,56 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
 
     @Override
     public void enterProgram(Fortran77Parser.ProgramContext ctx) {
-        System.out.println("enterProgram");
-        System.out.println(ctx.getText());
     }
 
     @Override
     public void exitProgram(Fortran77Parser.ProgramContext ctx) {
-        System.out.println("exitProgram");
-        System.out.println(ctx.getText());
 
     }
 
     @Override
     public void enterProgramStatement(Fortran77Parser.ProgramStatementContext ctx) {
-        System.out.println("enterProgramStatement");
-        System.out.println(ctx.getText());
 
     }
 
     @Override
     public void exitProgramStatement(Fortran77Parser.ProgramStatementContext ctx) {
-        System.out.println("exitProgramStatement");
-        System.out.println(ctx.getText());
 
     }
 
     @Override
     public void enterPrintStatement(Fortran77Parser.PrintStatementContext ctx) {
-        System.out.println("enterPrintStatement");
-        System.out.println(ctx.getText());
 
     }
 
     @Override
     public void exitPrintStatement(Fortran77Parser.PrintStatementContext ctx) {
-        System.out.println("exitPrintStatement");
-        System.out.println(ctx.getText());
 
     }
 
     @Override
     public void enterEndStatement(Fortran77Parser.EndStatementContext ctx) {
-        System.out.println("enterEndStatement");
 
     }
 
     @Override
     public void exitEndStatement(Fortran77Parser.EndStatementContext ctx) {
-        System.out.println("exitEndStatement");
-        System.out.println(ctx.getText());
 
     }
 
     @Override
     public void enterExpression(Fortran77Parser.ExpressionContext ctx) {
-        System.out.println("enterExpression");
-        System.out.println(ctx.getText());
 
     }
 
 
     @Override
     public void enterExecutableStatement(Fortran77Parser.ExecutableStatementContext ctx) {
-        System.out.println("enterExecutableStatement");
-        System.out.println(ctx.getText());
 
     }
 
     @Override
     public void exitExecutableStatement(Fortran77Parser.ExecutableStatementContext ctx) {
-        System.out.println("exitExecutableStatement");
-        System.out.println(ctx.getText());
 
     }
 
@@ -139,109 +109,85 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
 
     @Override
     public void enterMainProgram(Fortran77Parser.MainProgramContext ctx) {
-        System.out.println("enterMainProgram");
-        System.out.println(ctx.getText());
 
     }
 
     @Override
     public void exitMainProgram(Fortran77Parser.MainProgramContext ctx) {
-        System.out.println("exitMainProgram");
-        System.out.println(ctx.getText());
 
     }
 
     @Override
     public void enterSubprogramBody(Fortran77Parser.SubprogramBodyContext ctx) {
-        System.out.println("enterSubprogramBody");
-        System.out.println(ctx.getText());
+
+    }
+
+    @Override
+    public void enterWholeStatement(Fortran77Parser.WholeStatementContext ctx) {
+
+    }
+
+    @Override
+    public void exitWholeStatement(Fortran77Parser.WholeStatementContext ctx) {
 
     }
 
     @Override
     public void enterStatement(Fortran77Parser.StatementContext ctx) {
-        System.out.println("enterStatement");
-        System.out.println(ctx.getText());
 
     }
 
     @Override
     public void exitStatement(Fortran77Parser.StatementContext ctx) {
-        System.out.println("exitStatement");
-        System.out.println(ctx.getText());
-
     }
 
     @Override
     public void enterAexpr4(Fortran77Parser.Aexpr4Context ctx) {
-        System.out.println(ctx.SCON());
-        System.out.println(ctx.getText());
 
     }
 
     @Override
     public void exitAexpr4(Fortran77Parser.Aexpr4Context ctx) {
-        System.out.println("exitAexpr4");
-        System.out.println(ctx.getText());
 
     }
 
 
     @Override
     public void enterAexpr0(Fortran77Parser.Aexpr0Context ctx) {
-        System.out.println(ctx.getText());
     }
 
     @Override
     public void exitAexpr0(Fortran77Parser.Aexpr0Context ctx) {
-        System.out.println("exitAexpr0");
-        System.out.println(ctx.getText());
 
     }
 
     @Override
     public void enterAexpr1(Fortran77Parser.Aexpr1Context ctx) {
-        System.out.println(ctx.getText());
     }
 
     @Override
     public void exitAexpr1(Fortran77Parser.Aexpr1Context ctx) {
-        System.out.println("exitAexpr1");
-        System.out.println(ctx.getText());
-    }
-
-    @Override
-    public void enterAexpr2(Fortran77Parser.Aexpr2Context ctx) {
-        System.out.println(ctx.getText());
     }
 
     @Override
     public void exitAexpr2(Fortran77Parser.Aexpr2Context ctx) {
-        System.out.println("exitAexpr2");
-        System.out.println(ctx.getText());
     }
 
     @Override
     public void enterAexpr3(Fortran77Parser.Aexpr3Context ctx) {
-        System.out.println(ctx.getText());
     }
 
     @Override
     public void exitAexpr3(Fortran77Parser.Aexpr3Context ctx) {
-        System.out.println("exitAexpr3");
-        System.out.println(ctx.getText());
     }
 
     @Override
     public void exitFunctionStatement(Fortran77Parser.FunctionStatementContext ctx) {
-        System.out.println("exitFunctionStatement");
 
     }
 
     @Override
     public void exitTypeStatement(Fortran77Parser.TypeStatementContext ctx) {
-        System.out.println("exitTypeStatement");
-        System.out.println(ctx.getText());
 
     }
 
@@ -330,7 +276,8 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
                 variable.setNumber(setCounter());
                 variable.setType(t);
                 variableMap.put(parameter, variable);
-            } else {
+            }
+            else{
                 variable.setType(t);
             }
             builder.append("%")
@@ -347,38 +294,8 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
     @Override
     public void enterAssignmentStatement(Fortran77Parser.AssignmentStatementContext ctx) {
 
-        //        assignmentStatement ->
-        //          varRef ASSIGN expression
-
-        //        example
-        //        A - %1 , B = %2
-        //
-        //        B = 2
-        //        A = 2 + B
-        //        store i32 2, i32* %2, allign 4        <- assign 2 to B
-        //
-        //        %3 = load i32, i32* %1, align 4
-        //        %4 = add nsw i32 2, %3
-        //        store i32 %4, i32* %1, align 4
-        //
-
-        Variable v = variableMap.get(ctx.children.get(0).getText());
-        builder.append("store ")
-                .append(v.getType().getLlvmVal())
-                .append(" ")
-                .append(v.getVariableNumber())
-
-                .append(" " + ctx.children.get(1) + " ");
-
-        ParseTree equation = ctx.children.get(2);
-
-        while (equation.getChildCount() == 1) {
-            equation = equation.getChild(0);
-        }
-
-
-        builder.append("\n");
-
+        List<String> equationList = makeEquation(ctx);
+        solveEquation(equationList, variableMap.get(equationList.get(0)).getLLVMType());
     }
 
 
@@ -394,209 +311,164 @@ public class TranslatorListener extends Fortran77ParserBaseListener {
         builder.append("\n");
     }
 
-    @Override
-    public void exitExpression(Fortran77Parser.ExpressionContext ctx) {
 
 
+    private void solveEquation(List<String> list, String type){
+        List <String> equation = new ArrayList<>(list);
+        solveEquationRemoveParenthesis(equation, type);
+        solveEquationRemoveMulDiv(equation, type);
+        solveEquationRemoveAddSub(equation, type);
+        solveEquationFinish(equation, type);
+    }
+
+    private void solveEquationFinish(List<String> list, String type){
+        List <String> equation = new ArrayList<>(list);
+
+        if(equation.get(0).startsWith("%"))builder.append(equation.get(0)+" = ");
+        else builder.append("{{"+equation.get(0)+".number}} = ");
+        if(type.equals("i32"))builder.append("add ");     //jesli int
+        else builder.append("fadd ");                                                                 //jesli nie int (float) ?
+        builder.append(type+" 0, ");
+        if(variableMap.containsKey(equation.get(2)))builder.append("{{"+equation.get(2)+".number}}\n"); //jesli zmienna
+        else builder.append(equation.get(2)+"\n");                                                      //jesli stala
     }
 
 
-    //  LOGICAL EXPRESSION
-    @Override
-    public void enterLogicalExpression(Fortran77Parser.LogicalExpressionContext ctx) {
-//        builder.append("enterLogicalExp").append("\n");
-        logicalExpressionEnabled = true;
+    private void solveEquationSign(List<String> list, int sign, String intSign, String floatSign, String type){
+        List <String> equation = new ArrayList<>(list);
+
+        counter++;
+        builder.append("%"+counter+" = ");
+        if(type.equals("i32"))builder.append(intSign+" ");     //jesli int
+        else builder.append(floatSign+" ");                                                                 //jesli nie int (float) ?
+
+        builder.append(type+" ");
+
+        if(equation.get(sign-1).startsWith("%")) builder.append(equation.get(sign-1)+", ");           //jesli zmienna spoza listy
+        else if(variableMap.containsKey(equation.get(sign-1)))builder.append("{{"+equation.get(sign-1)+".number}}, "); //jesli zmienna
+        else builder.append(equation.get(sign-1)+", ");
+
+        if(equation.get(sign+1).startsWith("%")) builder.append(equation.get(sign+1)+"\n");           //jesli zmienna spoza listy
+        else if(variableMap.containsKey(equation.get(sign+1)))builder.append("{{"+equation.get(sign+1)+".number}}\n"); //jesli zmienna
+        else builder.append(equation.get(sign+1)+"\n");
     }
 
-    @Override
-    public void exitLogicalExpression(Fortran77Parser.LogicalExpressionContext ctx) {
-//        builder.append("exitLogicalExp").append("\n");
-
-        builder.append("br i1 ")
-                .append("%" + setCounter())
-                .append(", label ")
-                .append("%" + (counter))
-                .append(", label ")
-                .append("%" + IF_HOLE + (++ifHoleCounter))
-                .append("\n\n");
+    private void solveEquationRemoveMulDiv(List<String> equation, String type){
+        while(equation.contains("*") || equation.contains(("/"))){
+            int sign = 0;
+            for(int i = 2; i < equation.size(); i++){
+                if(equation.get(i).equals("*") || equation.get(i).equals("/")){
+                    sign = i;
+                    break;
+                }
+            }
+            if(equation.get(sign).equals("*")){
+                solveEquationSign(equation, sign, "mul", "fmul", type);
+            }
+            if(equation.get(sign).equals("/")){
+                solveEquationSign(equation, sign, "div", "fdiv", type);
+            }
+            equation.remove(sign+1);
+            equation.remove(sign);
+            equation.remove(sign-1);
+            equation.add(sign-1,"%"+counter);
+        }
     }
 
-//    IF STATEMENT
+    private void solveEquationRemoveParenthesis(List<String> equation, String type){
+        while(equation.contains("(")){
+            int parenthesisStartPlace = 0;
+            int parenthesisEndPlace = 0;
+            int parenthesisCounter = 0;
+            for(int i = 0; i<equation.size(); i++){
+                if(equation.get(i).equals("(")){
+                    if(parenthesisCounter==0)
+                        parenthesisStartPlace = i;
+                    parenthesisCounter++;
+                }
+                if(equation.get(i).equals(")")){
+                    parenthesisCounter--;
+                    if(parenthesisCounter==0){
 
-    @Override
-    public void enterIfStatement(Fortran77Parser.IfStatementContext ctx) {
-        enableLabel();
-    }
+                        parenthesisEndPlace = i;
+                        break;
+                    }
 
-    @Override
-    public void exitIfStatement(Fortran77Parser.IfStatementContext ctx) {
-        System.out.println(ctx.getText());
-    }
+                }
+            }
 
-    @Override
-    public void enterBlockIfStatement(Fortran77Parser.BlockIfStatementContext ctx) {
+            counter++;
+            List<String> tmpEquation = new ArrayList<>(equation.subList(parenthesisStartPlace+1,parenthesisEndPlace));
+            tmpEquation.add(0, "=");
+            tmpEquation.add(0, "%"+counter);
 
-    }
+            solveEquation(tmpEquation, type);
 
-    @Override
-    public void exitBlockIfStatement(Fortran77Parser.BlockIfStatementContext ctx) {
 
-        System.out.println(ctx.getText());
-    }
+            for(int i = parenthesisEndPlace; i >= parenthesisStartPlace; i--){
+                equation.remove(i);
+            }
+            equation.add(parenthesisStartPlace, "%"+counter);
 
-    @Override
-    public void enterFirstIfBlock(Fortran77Parser.FirstIfBlockContext ctx) {
-        enableLabel();
-    }
-
-    @Override
-    public void exitFirstIfBlock(Fortran77Parser.FirstIfBlockContext ctx) {
-    }
-
-    @Override
-    public void enterElseIfStatement(Fortran77Parser.ElseIfStatementContext ctx) {
-        String text = builder.toString();
-        text = text.replaceAll(IF_HOLE + (ifHoleCounter), String.valueOf(counter));
-
-        builder = new StringBuilder(text);
-
-        builder.append("; <label>: ")
-                .append(setCounter())
-                .append(":\n");
-    }
-
-    @Override
-    public void exitElseIfStatement(Fortran77Parser.ElseIfStatementContext ctx) {
-
-        System.out.println(ctx.getText());
-    }
-
-    @Override
-    public void enterElseStatement(Fortran77Parser.ElseStatementContext ctx) {
-        disableLabel();
-        String text = builder.toString();
-        text = text.replaceAll(IF_HOLE + (ifHoleCounter), String.valueOf(counter));
-
-        builder = new StringBuilder(text);
-
-        builder.append("; <label>: ")
-                .append(setCounter())
-                .append(":\n");
-    }
-
-    @Override
-    public void exitElseStatement(Fortran77Parser.ElseStatementContext ctx) {
-        builder.append("br label %")
-                .append(ELSE_HOLE)
-                .append("\n\n");
-    }
-
-    @Override
-    public void enterEndIfStatement(Fortran77Parser.EndIfStatementContext ctx) {
-        String text = builder.toString();
-        text = text.replaceAll(ELSE_HOLE, String.valueOf(counter));
-
-        builder = new StringBuilder(text);
-
-        builder.append("; <label>:")
-                .append(setCounter())
-                .append(":\n");
-    }
-
-    @Override
-    public void exitEndIfStatement(Fortran77Parser.EndIfStatementContext ctx) {
-        System.out.println(ctx.getText());
-    }
-
-    @Override
-    public void enterWholeStatement(Fortran77Parser.WholeStatementContext ctx) {
-        if (enableLabel) {
-            builder.append("; <label>:")
-                    .append(setCounter())
-                    .append(":\n");
         }
 
     }
 
-    @Override
-    public void exitWholeStatement(Fortran77Parser.WholeStatementContext ctx) {
-
-        if (enableLabel) {
-            builder.append("br label %")
-                    .append(ELSE_HOLE)
-                    .append("\n\n");
-        }
-
-    }
-
-    @Override
-    public void enterLexpr4(Fortran77Parser.Lexpr4Context ctx) {
-//        builder.append("enterLexpr4").append("\n");
-//        String obj1 = ctx.children.get(0).getText();
-//        TerminalNode node = (TerminalNode) ctx.children.get(1);
-//        String obj2 = ctx.children.get(2).getText();
-        if (logicalExpressionEnabled) {
-
-            String firstVarRef = "";
-            String secondVarRef = "";
-
-            String varName = ctx.children.get(0).getText();
-            if (variableMap.containsKey(varName)) {
-                getVariable(varName);
-                firstVarRef = "%" + (counter - 1);
-            } else {
-                firstVarRef = varName;
+    private void solveEquationRemoveAddSub(List<String> equation, String type){
+        while(equation.contains("+") || equation.contains(("-"))){
+            int sign = 0;
+            for(int i = 2; i < equation.size(); i++){
+                if(equation.get(i).equals("-") || equation.get(i).equals("+")){
+                    sign = i;
+                    break;
+                }
             }
-
-            String var2Name = ctx.children.get(2).getText();
-            if (variableMap.containsKey(var2Name)) {
-                getVariable(var2Name);
-                secondVarRef = "%" + (counter - 1);
-            } else {
-                secondVarRef = var2Name;
+            if(equation.get(sign).equals("+")){
+                solveEquationSign(equation, sign, "add", "fadd", type);
             }
-
-            builder.append("%" + counter)
-                    .append(" = icmp ");
-//                    .append("sgt" )
-            switch (ctx.children.get(1).getText().toLowerCase()) {
-                case ".le.":
-                    builder.append(" slt");
-                    break;
-                case ".ge.":
-                    builder.append(" sgt");
-                    break;
-                case ".eq.":
-                    builder.append(" eq");
-                    break;
-                case ".neq.":
-                    builder.append(" neq");
-                    break;
+            if(equation.get(sign).equals("-")){
+                solveEquationSign(equation, sign, "sub", "fsub", type);
             }
-
-            builder.append(" i32 ") //need to be changed
-                    .append(firstVarRef + ", ")
-                    .append(secondVarRef)
-                    .append("\n");
-
-
-            logicalExpressionEnabled = false;
+            equation.remove(sign+1);
+            equation.remove(sign);
+            equation.remove(sign-1);
+            equation.add(sign-1,"%"+counter);
         }
     }
 
-    private String getVariable(String varName) {
-        Variable variable = variableMap.get(varName);
-        builder.append("%" + setCounter())
-                .append(" = load ")
-                .append(variable.getType().getLlvmVal())
-                .append(", " + variable.getType().getLlvmVal() + "* ")
-                .append("%")
-                .append(variable.getNumber())
-                .append(", align ")
-                .append(variable.getType().getBytes())
-                .append("\n");
+    private List<String> makeEquation(Fortran77Parser.AssignmentStatementContext ctx){
 
-        return "%" + variable.getNumber();
+        List<String> equation = new ArrayList<>();
+
+
+        String equationString = ctx.start.getInputStream().getText(new Interval(ctx.start.getStartIndex(), ctx.stop.getStopIndex()));
+
+        CharStream stream = CharStreams.fromString(equationString);
+        Fortran77Lexer lexer = new Fortran77Lexer(stream);
+        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+
+        tokenStream.getNumberOfOnChannelTokens();
+
+        for(int i = 0; i < tokenStream.size(); i++){
+            equation.add((tokenStream.get(i).getText()));
+        }
+
+        // LICZBY UJEMNE
+
+        String charsNotAllowedBeforeMinus = "=+-*/";
+
+        for(int i = 0; i < equation.size(); i++){
+            if(equation.get(i).equals("-"))
+                if(charsNotAllowedBeforeMinus.contains(equation.get(i-1))){
+                    equation.remove(i);
+                    equation.add(i, "-"+equation.get(i));
+                    equation.remove(i+1);
+                    i--;
+            }
+        }
+
+        return equation;
     }
 
 }
+

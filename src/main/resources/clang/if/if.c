@@ -1,7 +1,10 @@
 void f() {
-   int a;
-   if (a >= 1){
-        a = 2;
+   int a,b;
+   a = 4;
+   b = 3;
+   if(a ==b){
+    a = 1;
+   }else{
+    b = 2;
    }
-
 }

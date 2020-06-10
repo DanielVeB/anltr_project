@@ -1,6 +1,0 @@
-program circle
-    INTEGER F,A,X
-    A = 4
-    X = A - 2
-    F = A * X
-end
