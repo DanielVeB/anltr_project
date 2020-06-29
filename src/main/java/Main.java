@@ -14,7 +14,7 @@ public class Main {
     public static void main(String[] args) {
 
 
-        String file = FUNCTION_PATH;
+        String file = IF;
 
         TranslatorListener listener = new TranslatorListener();
 
